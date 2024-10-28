@@ -7,11 +7,10 @@
 
 
 
-
 import SwiftUI
 import UIKit
 
-// Model
+//  Model
 
 struct Ingredient: Identifiable {
     var id = UUID()
@@ -21,7 +20,7 @@ struct Ingredient: Identifiable {
     var servingSize: Int
 }
 
-// ViewModel
+// MARK: - ViewModel
 
 class UpimageViewModel: ObservableObject {
     @AppStorage("Title") var title: String = ""
@@ -32,9 +31,27 @@ class UpimageViewModel: ObservableObject {
     @Published var showAddIngredientSheet = false
     @Published var ingredients: [Ingredient] = []
     
+    init() {
+        loadData()
+    }
+    
     func saveData() {
         title = ingredientTitle
         ingredientDetails = self.ingredientDetails
+        
+        // حفظ الصورة كـ Data في UserDefaults
+        if let selectedImage = selectedImage,
+           let imageData = selectedImage.jpegData(compressionQuality: 0.8) {
+            UserDefaults.standard.set(imageData, forKey: "SavedImage")
+        }
+    }
+    
+    func loadData() {
+        // تحميل الصورة المحفوظة من UserDefaults
+        if let imageData = UserDefaults.standard.data(forKey: "SavedImage"),
+           let savedImage = UIImage(data: imageData) {
+            selectedImage = savedImage
+        }
     }
     
     func addIngredient(title: String, details: String, measurement: String, servingSize: Int) {
@@ -43,7 +60,7 @@ class UpimageViewModel: ObservableObject {
     }
 }
 
-// Views
+// MARK: - Views
 
 struct Upimage: View {
     @StateObject private var viewModel = UpimageViewModel()
@@ -237,7 +254,7 @@ struct AddIngredientSheet: View {
     }
 }
 
-// ImagePicker Component
+// MARK: - ImagePicker Component
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
@@ -274,6 +291,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
+
 
 #Preview {
     Upimage()
